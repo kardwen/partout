@@ -1,0 +1,18 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "partout",
+    "passepartout",
+]
+
+[profile.dev]
+opt-level = 0
+debug = 2
+
+[profile.release]
+lto = "thin"
+opt-level = 3
+debug = 1
+strip = false
+panic = "abort"

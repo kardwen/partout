@@ -1,0 +1,19 @@
+[package]
+name = "partout"
+description = "Iced app for pass"
+version = "0.1.0"
+edition = "2021"
+authors = ["Karl Felix Schewe"]
+readme = "../README.md"
+license = "GPL-3.0-only"
+repository = "https://github.com/kardwen/partout"
+keywords = ["password-manager", "pass"]
+categories = ["authentication"]
+
+[dependencies]
+anyhow = "1.0.93"
+iced = "0.13.1"
+passepartout = "0.1.0"
+
+[dev-dependencies]
+clippy = "0.0.302"
