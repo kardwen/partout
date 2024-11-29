@@ -6,29 +6,209 @@ use std::{
     fs, io,
     path::{Path, PathBuf},
     process::{Command, Stdio},
-    sync::mpsc::Sender,
+    sync::{mpsc::Sender, Mutex},
     thread::JoinHandle,
 };
 
-use crate::{events::ChannelEvent, password_info::PasswordInfo, utils::run_once};
+use crate::{
+    error::PasswordError, events::PasswordEvent, password_info::PasswordInfo, utils::run_once,
+};
+
+static CLIPBOARD: Mutex<Option<Clipboard>> = Mutex::new(None);
+
+pub fn get_clipboard() -> &'static Mutex<Option<Clipboard>> {
+    // TODO: remove unwrap
+    let mut clipboard = CLIPBOARD.lock().unwrap();
+    if clipboard.is_none() {
+        *clipboard = Clipboard::new().ok();
+    }
+    &CLIPBOARD
+}
+
+pub fn copy_id(pass_id: String) -> Result<(), PasswordError> {
+    // TODO: remove unwrap
+    let mut clipboard_guard = get_clipboard().lock().unwrap();
+
+    match clipboard_guard.as_mut() {
+        Some(clipboard) => match clipboard.set_text(pass_id) {
+            Ok(()) => Ok(()),
+            Err(e) => Err(PasswordError::ClipboardError(e)),
+        },
+        None => Err(PasswordError::ClipboardUnavailable),
+    }
+}
+
+pub fn copy_password(
+    pass_id: String,
+    tx: Option<Sender<PasswordEvent>>,
+) -> Result<(), PasswordError> {
+    let status = Command::new("pass")
+        .arg(OsStr::new(&pass_id))
+        .arg("--clip")
+        .stderr(Stdio::null())
+        .stdout(Stdio::null())
+        .status()
+        .expect("failed to execute process");
+    if status.success() {
+        let message = "Password copied to clipboard, clears after 45 seconds".to_string();
+        if let Some(tx) = tx {
+            tx.send(PasswordEvent::Status(Ok(Some(message))))
+                .expect("receiver deallocated");
+        }
+        Ok(())
+    } else {
+        if let Some(tx) = tx {
+            tx.send(PasswordEvent::Status(Err(PasswordError::PassError(
+                status.to_string(),
+            ))))
+            .expect("receiver deallocated");
+        }
+        Err(PasswordError::PassError(status.to_string()))
+    }
+}
+
+pub fn copy_login(pass_id: String, tx: Option<Sender<PasswordEvent>>) -> Result<(), PasswordError> {
+    let status = Command::new("pass")
+        .arg(OsStr::new(&pass_id))
+        .arg("--clip=2")
+        .stderr(Stdio::null())
+        .stdout(Stdio::null())
+        .status()
+        .expect("failed to execute process");
+    if status.success() {
+        let message = "Login copied to clipboard, clears after 45 seconds".to_string();
+
+        if let Some(tx) = tx {
+            tx.send(PasswordEvent::Status(Ok(Some(message))))
+                .expect("receiver deallocated");
+        }
+        Ok(())
+    } else {
+        if let Some(tx) = tx {
+            tx.send(PasswordEvent::Status(Err(PasswordError::PassError(
+                status.to_string(),
+            ))))
+            .expect("receiver deallocated");
+        }
+        Err(PasswordError::PassError(status.to_string()))
+    }
+}
+
+pub fn copy_otp(pass_id: String, tx: Option<Sender<PasswordEvent>>) -> Result<(), PasswordError> {
+    let status = Command::new("pass")
+        .arg("otp")
+        .arg("code")
+        .arg(OsStr::new(&pass_id))
+        .arg("--clip")
+        .stderr(Stdio::null())
+        .stdout(Stdio::null())
+        .status()
+        .expect("failed to execute process");
+    if status.success() {
+        let message = "One-time password copied to clipboard".to_string();
+        if let Some(tx) = tx {
+            tx.send(PasswordEvent::Status(Ok(Some(message))))
+                .expect("receiver deallocated");
+        }
+        Ok(())
+    } else {
+        if let Some(tx) = tx {
+            tx.send(PasswordEvent::Status(Err(PasswordError::PassError(
+                status.to_string(),
+            ))))
+            .expect("receiver deallocated");
+        }
+        Err(PasswordError::PassError(status.to_string()))
+    }
+}
+
+pub fn fetch_otp(
+    pass_id: String,
+    tx: Option<Sender<PasswordEvent>>,
+) -> Result<PasswordEvent, PasswordError> {
+    let output = Command::new("pass")
+        .arg("otp")
+        .arg("code")
+        .arg(OsStr::new(&pass_id))
+        .output()
+        .expect("failed to execute process");
+    if output.status.success() {
+        let one_time_password = String::from_utf8_lossy(&output.stdout).to_string();
+        if let Some(tx) = tx {
+            tx.send(PasswordEvent::OneTimePassword {
+                pass_id: pass_id.clone(),
+                one_time_password: one_time_password.clone(),
+            })
+            .expect("receiver deallocated");
+            tx.send(PasswordEvent::Status(Ok(None)))
+                .expect("receiver deallocated");
+        }
+        Ok(PasswordEvent::OneTimePassword {
+            pass_id,
+            one_time_password,
+        })
+    } else {
+        let message = String::from_utf8_lossy(&output.stderr).to_string();
+        if let Some(tx) = tx {
+            tx.send(PasswordEvent::Status(Err(PasswordError::PassError(
+                message.clone(),
+            ))))
+            .expect("receiver deallocated");
+        }
+        Err(PasswordError::PassError(message))
+    }
+}
+
+pub fn fetch_entry(
+    pass_id: String,
+    tx: Option<Sender<PasswordEvent>>,
+) -> Result<PasswordEvent, PasswordError> {
+    let output = Command::new("pass")
+        .arg(OsStr::new(&pass_id))
+        .output()
+        .expect("failed to execute process");
+    if output.status.success() {
+        let file_contents = String::from_utf8_lossy(&output.stdout).to_string();
+        if let Some(ref tx) = tx {
+            tx.send(PasswordEvent::PasswordInfo {
+                pass_id: pass_id.clone(),
+                file_contents: file_contents.clone(),
+            })
+            .expect("receiver deallocated");
+            tx.send(PasswordEvent::Status(Ok(None)))
+                .expect("receiver deallocated");
+        }
+        Ok(PasswordEvent::PasswordInfo {
+            pass_id,
+            file_contents,
+        })
+    } else {
+        let message = String::from_utf8_lossy(&output.stderr).to_string();
+        if let Some(tx) = tx {
+            tx.send(PasswordEvent::Status(Err(PasswordError::PassError(
+                message.clone(),
+            ))))
+            .expect("receiver deallocated");
+        }
+        Err(PasswordError::PassError(message))
+    }
+}
 
 pub struct PasswordStore {
     pub passwords: Vec<PasswordInfo>,
-    event_tx: Sender<ChannelEvent>,
+    event_tx: Sender<PasswordEvent>,
     ops_map: HashMap<String, (JoinHandle<()>, String)>,
-    pub clipboard: Option<Clipboard>,
 }
 
 impl PasswordStore {
-    pub fn new(event_tx: Sender<ChannelEvent>) -> Self {
-        let dir = Self::get_store_dir();
-        let mut passwords = Self::get_password_infos(&dir);
+    pub fn new(event_tx: Sender<PasswordEvent>) -> Self {
+        let store_dir = Self::get_store_dir();
+        let mut passwords = Self::get_password_infos(&store_dir);
         passwords.sort_by_key(|element| element.pass_id.clone());
         Self {
             passwords,
             event_tx,
             ops_map: HashMap::new(),
-            clipboard: Clipboard::new().ok(),
         }
     }
 
@@ -81,192 +261,63 @@ impl PasswordStore {
         Ok(result)
     }
 
-    pub fn copy_pass_id(&mut self, pass_id: String) {
-        let tx = self.event_tx.clone();
-        if let Some(ref mut clipboard) = self.clipboard {
-            match clipboard.set_text(pass_id) {
-                Ok(()) => {
-                    let message = "Password file identifier copied to clipboard".into();
-                    tx.send(ChannelEvent::Status(message))
-                        .expect("receiver deallocated");
-                }
-                Err(e) => {
-                    let message = format!("Failed to copy password file identifier: {e:?}");
-                    tx.send(ChannelEvent::Status(message))
-                        .expect("receiver deallocated");
-                }
-            }
-        } else {
-            let message = String::from("✗ Clipboard not available");
-            tx.send(ChannelEvent::Status(message))
-                .expect("receiver deallocated");
-        }
-    }
-
     pub fn copy_password(&mut self, pass_id: String) {
         let tx = self.event_tx.clone();
-
-        fn pass_fn(pass_id: String, tx: Sender<ChannelEvent>) {
-            let message = String::from("⧗ (pass) Copying password...");
-            tx.send(ChannelEvent::Status(message))
-                .expect("receiver deallocated");
-            let status = Command::new("pass")
-                .arg(OsStr::new(&pass_id))
-                .arg("--clip")
-                .stderr(Stdio::null())
-                .stdout(Stdio::null())
-                .status()
-                .expect("failed to execute process");
-            let message = if status.success() {
-                "Password copied to clipboard, clears after 45 seconds".to_string()
-            } else {
-                format!("(pass) {status}")
-            };
-            let status_event = ChannelEvent::Status(message);
-            tx.send(status_event).expect("receiver deallocated");
-        }
-
         run_once(
             &mut self.ops_map,
-            "pass_copy_password".into(),
+            "copy_password".into(),
             pass_id.clone(),
-            move || pass_fn(pass_id, tx),
+            move || {
+                let _ = copy_password(pass_id, Some(tx));
+            },
         );
     }
 
     pub fn copy_login(&mut self, pass_id: String) {
         let tx = self.event_tx.clone();
-
-        fn pass_fn(pass_id: String, tx: Sender<ChannelEvent>) {
-            let message = String::from("⧗ (pass) Copying login...");
-            tx.send(ChannelEvent::Status(message))
-                .expect("receiver deallocated");
-            let status = Command::new("pass")
-                .arg(OsStr::new(&pass_id))
-                .arg("--clip=2")
-                .stderr(Stdio::null())
-                .stdout(Stdio::null())
-                .status()
-                .expect("failed to execute process");
-            let message = if status.success() {
-                "Login copied to clipboard, clears after 45 seconds".to_string()
-            } else {
-                format!("✗ (pass) {status}")
-            };
-            let status_event = ChannelEvent::Status(message);
-            tx.send(status_event).expect("receiver deallocated");
-        }
-
         run_once(
             &mut self.ops_map,
-            "pass_copy_login".into(),
+            "copy_login".into(),
             pass_id.clone(),
-            move || pass_fn(pass_id, tx),
+            move || {
+                let _ = copy_login(pass_id, Some(tx));
+            },
         );
     }
 
-    pub fn copy_one_time_password(&mut self, pass_id: String) {
+    pub fn copy_otp(&mut self, pass_id: String) {
         let tx = self.event_tx.clone();
-
-        fn pass_fn(pass_id: String, tx: Sender<ChannelEvent>) {
-            let message = String::from("⧗ (pass) Copying one-time password...");
-            tx.send(ChannelEvent::Status(message))
-                .expect("receiver deallocated");
-            let status = Command::new("pass")
-                .arg("otp")
-                .arg("code")
-                .arg(OsStr::new(&pass_id))
-                .arg("--clip")
-                .stderr(Stdio::null())
-                .stdout(Stdio::null())
-                .status()
-                .expect("failed to execute process");
-            let message = if status.success() {
-                "One-time password copied to clipboard".to_string()
-            } else {
-                format!("✗ (pass) {status}")
-            };
-            let status_event = ChannelEvent::Status(message);
-            tx.send(status_event).expect("receiver deallocated");
-        }
-
         run_once(
             &mut self.ops_map,
-            "pass_otp_copy".into(),
+            "copy_otp".into(),
             pass_id.clone(),
-            move || pass_fn(pass_id, tx),
+            move || {
+                let _ = copy_otp(pass_id, Some(tx));
+            },
         );
     }
 
-    pub fn fetch_one_time_password(&mut self, pass_id: String) {
+    pub fn fetch_otp(&mut self, pass_id: String) {
         let tx = self.event_tx.clone();
-
-        fn pass_fn(pass_id: String, tx: Sender<ChannelEvent>) {
-            let message = String::from("⧗ (pass) Fetching one-time password...");
-            tx.send(ChannelEvent::Status(message))
-                .expect("receiver deallocated");
-            let output = Command::new("pass")
-                .arg("otp")
-                .arg("code")
-                .arg(OsStr::new(&pass_id))
-                .output()
-                .expect("failed to execute process");
-            if output.status.success() {
-                let one_time_password = String::from_utf8_lossy(&output.stdout).to_string();
-                tx.send(ChannelEvent::OneTimePassword {
-                    pass_id,
-                    one_time_password,
-                })
-                .expect("receiver deallocated");
-                tx.send(ChannelEvent::ResetStatus)
-                    .expect("receiver deallocated");
-            } else {
-                let message = format!("✗ (pass) {}", String::from_utf8_lossy(&output.stderr));
-                tx.send(ChannelEvent::Status(message))
-                    .expect("receiver deallocated");
-            }
-        }
-
         run_once(
             &mut self.ops_map,
-            "pass_otp_fetch".into(),
+            "fetch_otp".into(),
             pass_id.clone(),
-            move || pass_fn(pass_id, tx),
+            move || {
+                let _ = fetch_otp(pass_id, Some(tx));
+            },
         );
     }
 
-    pub fn fetch_pass_details(&mut self, pass_id: String) {
+    pub fn fetch_entry(&mut self, pass_id: String) {
         let tx = self.event_tx.clone();
-
-        fn pass_fn(pass_id: String, tx: Sender<ChannelEvent>) {
-            let message = String::from("⧗ (pass) Fetching password entry...");
-            tx.send(ChannelEvent::Status(message))
-                .expect("receiver deallocated");
-            let output = Command::new("pass")
-                .arg(OsStr::new(&pass_id))
-                .output()
-                .expect("failed to execute process");
-            if output.status.success() {
-                let file_contents = String::from_utf8_lossy(&output.stdout).to_string();
-                tx.send(ChannelEvent::PasswordInfo {
-                    pass_id,
-                    file_contents,
-                })
-                .expect("receiver deallocated");
-                tx.send(ChannelEvent::ResetStatus)
-                    .expect("receiver deallocated");
-            } else {
-                let message = format!("✗ (pass) {}", String::from_utf8_lossy(&output.stderr));
-                tx.send(ChannelEvent::Status(message))
-                    .expect("receiver deallocated");
-            };
-        }
-
         run_once(
             &mut self.ops_map,
-            "pass_show".into(),
+            "fetch_entry".into(),
             pass_id.clone(),
-            move || pass_fn(pass_id, tx.clone()),
+            move || {
+                let _ = fetch_entry(pass_id, Some(tx.clone()));
+            },
         );
     }
 }

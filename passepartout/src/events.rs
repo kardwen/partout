@@ -1,6 +1,8 @@
-#[derive(Debug, Clone, PartialEq)]
-pub enum ChannelEvent {
-    Status(String),
+use crate::PasswordError;
+
+#[derive(Debug)]
+pub enum PasswordEvent {
+    Status(Result<Option<String>, PasswordError>),
     ResetStatus,
     PasswordInfo {
         pass_id: String,

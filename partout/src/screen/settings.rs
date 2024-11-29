@@ -52,7 +52,8 @@ impl Settings {
             text("Settings"),
             horizontal_rule(38),
             choose_theme,
-            horizontal_rule(38)
+            horizontal_rule(38),
+            text("Note: Settings cannot be saved at the moment."),
         ]
         .spacing(20)
         .padding(20);

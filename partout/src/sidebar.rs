@@ -1,4 +1,4 @@
-use iced::widget::{button, column, vertical_space};
+use iced::widget::{button, column, container, text, vertical_space};
 use iced::{Element, Subscription, Task};
 
 #[derive(Debug, Clone)]
@@ -35,7 +35,10 @@ impl Sidebar {
             button("Dashboard").on_press(Message::ShowDashboard),
             button("Settings").on_press(Message::ShowSettings),
             button("Quit").on_press(Message::Quit),
-            vertical_space()
+            vertical_space(),
+            container(text("alpha"))
+                .style(container::rounded_box)
+                .padding([0, 5]),
         ]
         .spacing(10)
         .padding(10)

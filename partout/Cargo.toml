@@ -1,7 +1,7 @@
 [package]
 name = "partout"
 description = "Iced app for pass"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Karl Felix Schewe"]
 readme = "../README.md"
@@ -12,8 +12,9 @@ categories = ["authentication"]
 
 [dependencies]
 anyhow = "1.0.93"
-iced = "0.13.1"
-passepartout = "0.1.0"
+iced = { version = "0.13.1", features = ["advanced", "debug", "image"] }
+iced_fonts = { version = "0.1.1", features = ["nerd"] }
+passepartout = "0.1.2"
 
 [dev-dependencies]
 clippy = "0.0.302"
