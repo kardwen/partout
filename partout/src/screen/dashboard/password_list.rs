@@ -1,11 +1,15 @@
-use iced::widget::{column, scrollable, text, text_input, Column};
-use iced::{Center, Element, Fill, Task};
+use iced::widget::{
+    button, column, container, horizontal_space, hover, row, scrollable, text, text_input, Column,
+};
+use iced::{Element, Fill, Font, Left, Right, Task};
 
+use crate::icons;
 use passepartout::PasswordInfo;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     SearchChanged(String),
+    SelectEntry(PasswordInfo),
 }
 
 pub enum Action {
@@ -13,6 +17,7 @@ pub enum Action {
     Run(Task<Message>),
     Back,
     UpdateSearch,
+    SelectEntry(PasswordInfo),
 }
 
 pub struct PasswordList {
@@ -46,21 +51,33 @@ impl PasswordList {
             .on_input(Message::SearchChanged);
 
         let mut rows = Column::new();
-        for password in &self.passwords {
-            rows = rows.push(text(password.pass_id.clone()));
+        let filter = !self.search.is_empty();
+        for entry in &self.passwords {
+            if filter
+                && !entry
+                    .pass_id
+                    .to_lowercase()
+                    .contains(&self.search.to_lowercase())
+            {
+                continue;
+            }
+            rows = rows.push(password_card(entry));
         }
-        let table = scrollable(rows.align_x(Center).padding([20, 0]).spacing(20))
-            .direction(scrollable::Direction::Vertical(
-                scrollable::Scrollbar::new()
-                    .width(self.scrollbar_width)
-                    .margin(self.scrollbar_margin)
-                    .scroller_width(self.scroller_width)
-                    .anchor(self.anchor),
-            ))
-            .width(Fill)
-            .height(Fill);
+        let list = scrollable(row![
+            rows.align_x(Left).spacing(10),
+            horizontal_space().width(12)
+        ])
+        .direction(scrollable::Direction::Vertical(
+            scrollable::Scrollbar::new()
+                .width(self.scrollbar_width)
+                .margin(self.scrollbar_margin)
+                .scroller_width(self.scroller_width)
+                .anchor(self.anchor),
+        ))
+        .width(Fill)
+        .height(Fill);
 
-        column![search, table].into()
+        column![search, list].into()
     }
 
     pub fn update(&mut self, message: Message) -> Action {
@@ -69,6 +86,38 @@ impl PasswordList {
                 self.search = search;
                 Action::UpdateSearch
             }
+            Message::SelectEntry(entry) => Action::SelectEntry(entry),
         }
     }
+}
+
+fn password_card(entry: &PasswordInfo) -> Element<Message> {
+    let title = {
+        const LIMIT: usize = 40;
+
+        let name = entry.pass_id.clone();
+
+        if name.len() < LIMIT {
+            text(name)
+        } else {
+            text!("{}...", &name[0..LIMIT])
+        }
+        .font(Font::MONOSPACE)
+    };
+
+    let details = container(
+        button(row!["View", icons::view()].spacing(10))
+            .on_press(Message::SelectEntry(entry.clone())),
+    )
+    .width(Fill)
+    .padding(10)
+    .align_x(Right)
+    .center_y(Fill);
+
+    let card = container(title)
+        .width(Fill)
+        .padding(15)
+        .style(container::rounded_box);
+
+    hover(card, details)
 }

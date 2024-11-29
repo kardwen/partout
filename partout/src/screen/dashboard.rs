@@ -22,7 +22,6 @@ pub enum Action {
 }
 
 pub struct Dashboard {
-    password_store: PasswordStore,
     password_list: PasswordList,
     password_details: PasswordDetails,
 }
@@ -37,7 +36,6 @@ impl Dashboard {
             Self {
                 password_list,
                 password_details,
-                password_store,
             },
             Task::none(),
         )
@@ -52,12 +50,27 @@ impl Dashboard {
             Message::PasswordList(message) => {
                 let action = self.password_list.update(message);
                 match action {
+                    password_list::Action::SelectEntry(entry) => {
+                        // should I really create a new message here?
+                        match self
+                            .password_details
+                            .update(password_details::Message::SelectEntry(entry))
+                        {
+                            password_details::Action::Run(task) => {
+                                Action::Run(task.map(Message::PasswordDetails))
+                            }
+                            _ => Action::None,
+                        }
+                    }
                     _ => Action::None,
                 }
             }
             Message::PasswordDetails(message) => {
                 let action = self.password_details.update(message);
                 match action {
+                    password_details::Action::Run(task) => {
+                        Action::Run(task.map(Message::PasswordDetails))
+                    }
                     _ => Action::None,
                 }
             }

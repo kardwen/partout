@@ -32,6 +32,16 @@ impl PasswordStore {
         }
     }
 
+    // TODO: remove after refactoring
+    pub fn empty(event_tx: Sender<ChannelEvent>) -> Self {
+        Self {
+            passwords: Vec::new(),
+            event_tx,
+            ops_map: HashMap::new(),
+            clipboard: Clipboard::new().ok(),
+        }
+    }
+
     pub fn get_store_dir() -> PathBuf {
         let home = dirs::home_dir().expect("could not determine home directory");
         if let Some(store_path) = env::var_os("PASSWORD_STORE_DIR") {
