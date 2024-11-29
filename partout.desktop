@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Partout
+GenericName=Password manager
+Comment=Iced app for pass
+Icon=partout
+Exec=partout
+Categories=Settings;Utility;
+Terminal=false
+Keywords=pass;pass-otp;

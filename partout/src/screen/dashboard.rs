@@ -1,13 +1,11 @@
-mod password_details;
+pub mod password_details;
 mod password_list;
 
 use iced::widget::{container, row};
 use iced::{Element, Left, Subscription, Task, Top};
-use std::sync::mpsc;
+use passepartout::PasswordInfo;
 
-use self::password_details::PasswordDetails;
-use self::password_list::PasswordList;
-use passepartout::PasswordStore;
+use self::{password_details::PasswordDetails, password_list::PasswordList};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -22,22 +20,18 @@ pub enum Action {
 }
 
 pub struct Dashboard {
-    password_store: PasswordStore,
     password_list: PasswordList,
     password_details: PasswordDetails,
 }
 
 impl Dashboard {
-    pub fn new() -> (Self, Task<Message>) {
-        let (event_tx, _event_rx) = mpsc::channel();
-        let password_store = PasswordStore::new(event_tx);
-        let (password_list, _) = PasswordList::new(password_store.passwords.clone());
+    pub fn new(passwords: Vec<PasswordInfo>) -> (Self, Task<Message>) {
+        let (password_list, _) = PasswordList::new(passwords);
         let (password_details, _) = PasswordDetails::new();
         (
             Self {
                 password_list,
                 password_details,
-                password_store,
             },
             Task::none(),
         )
@@ -52,12 +46,27 @@ impl Dashboard {
             Message::PasswordList(message) => {
                 let action = self.password_list.update(message);
                 match action {
+                    password_list::Action::SelectEntry(entry) => {
+                        // should I really create a new message here?
+                        match self
+                            .password_details
+                            .update(password_details::Message::SelectEntry(entry))
+                        {
+                            password_details::Action::Run(task) => {
+                                Action::Run(task.map(Message::PasswordDetails))
+                            }
+                            _ => Action::None,
+                        }
+                    }
                     _ => Action::None,
                 }
             }
             Message::PasswordDetails(message) => {
                 let action = self.password_details.update(message);
                 match action {
+                    password_details::Action::Run(task) => {
+                        Action::Run(task.map(Message::PasswordDetails))
+                    }
                     _ => Action::None,
                 }
             }

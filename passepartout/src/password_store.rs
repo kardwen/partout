@@ -81,7 +81,7 @@ impl PasswordStore {
         Ok(result)
     }
 
-    pub fn copy_pass_id(&mut self, pass_id: String) {
+    pub fn copy_id(&mut self, pass_id: String) {
         let tx = self.event_tx.clone();
         if let Some(ref mut clipboard) = self.clipboard {
             match clipboard.set_text(pass_id) {
@@ -165,7 +165,7 @@ impl PasswordStore {
         );
     }
 
-    pub fn copy_one_time_password(&mut self, pass_id: String) {
+    pub fn copy_otp(&mut self, pass_id: String) {
         let tx = self.event_tx.clone();
 
         fn pass_fn(pass_id: String, tx: Sender<ChannelEvent>) {
@@ -198,7 +198,8 @@ impl PasswordStore {
         );
     }
 
-    pub fn fetch_one_time_password(&mut self, pass_id: String) {
+    /// Copies a one-time password (OTP) to clipboard
+    pub fn fetch_otp(&mut self, pass_id: String) {
         let tx = self.event_tx.clone();
 
         fn pass_fn(pass_id: String, tx: Sender<ChannelEvent>) {
