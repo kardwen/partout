@@ -1,5 +1,7 @@
 # Partout
 
+[![crates.io](https://img.shields.io/crates/v/partout.svg)](https://crates.io/crates/partout)
+
 ## Introduction
 
 A desktop app for [pass](https://www.passwordstore.org/), work in progress
@@ -45,5 +47,25 @@ to be copied to `$XDG_DATA_HOME/applications`
 Library for pass: [`passepartout`](https://github.com/kardwen/passepartout)
 
 ```sh
+cargo fmt
 cargo clippy
 ```
+
+### Fonts
+
+[Jam icons](https://github.com/michaelampr/jam)
+
+[fantasticon]((https://github.com/tancredi/fantasticon)
+
+Install [Deno](https://deno.com/)
+
+```sh
+deno install --global npm:fantasticon
+```
+
+```sh
+fantasticon assets/icons -o assets/fonts -t ttf --name partout-icons
+```
+
+Unicode codepoints can be found in `assets/fonts/partout-icons.css`,
+unfortunately they change whenever an icon is added or removed.
