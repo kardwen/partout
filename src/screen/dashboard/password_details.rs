@@ -230,11 +230,11 @@ impl PasswordDetails {
                     self.show_secrets = true
                 }
                 Action::None
-            } // TODO: implement
+            }
             Message::CopyPassword(entry) => {
                 self.status = Some("Copying password to clipboard...".to_string());
                 Action::Run(Task::perform(
-                    async move { passepartout::copy_password(entry.pass_id, None).is_ok() },
+                    async move { passepartout::copy_password(entry.pass_id).is_ok() },
                     Message::PasswordCopied,
                 ))
             }
@@ -249,7 +249,7 @@ impl PasswordDetails {
             Message::CopyLogin(entry) => {
                 self.status = Some("Copying login to clipboard...".to_string());
                 Action::Run(Task::perform(
-                    async move { passepartout::copy_login(entry.pass_id, None).is_ok() },
+                    async move { passepartout::copy_login(entry.pass_id).is_ok() },
                     Message::LoginCopied,
                 ))
             }
@@ -264,7 +264,7 @@ impl PasswordDetails {
             Message::CopyOtp(entry) => {
                 self.status = Some("Copying login to clipboard...".to_string());
                 Action::Run(Task::perform(
-                    async move { passepartout::copy_otp(entry.pass_id, None).is_ok() },
+                    async move { passepartout::copy_otp(entry.pass_id).is_ok() },
                     Message::OtpCopied,
                 ))
             }

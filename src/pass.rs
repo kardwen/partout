@@ -4,7 +4,7 @@ use passepartout::{self, PasswordEvent};
 // on how to structure the shared passepartout library
 
 pub async fn fetch_entry(pass_id: String) -> (String, String) {
-    match passepartout::fetch_entry(pass_id.clone(), None) {
+    match passepartout::fetch_entry(pass_id.clone()) {
         Ok(PasswordEvent::PasswordInfo {
             pass_id,
             file_contents,
@@ -14,7 +14,7 @@ pub async fn fetch_entry(pass_id: String) -> (String, String) {
 }
 
 pub async fn fetch_otp(pass_id: String) -> (String, String) {
-    match passepartout::fetch_otp(pass_id.clone(), None) {
+    match passepartout::fetch_otp(pass_id.clone()) {
         Ok(PasswordEvent::OneTimePassword {
             pass_id,
             one_time_password,
