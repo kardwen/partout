@@ -1,31 +1,89 @@
-use iced::widget::{text, Text};
+use iced::widget::{text, text::LineHeight, Text};
 use iced::Font;
-use iced_fonts::nerd::{icon_to_string, Nerd};
-use iced_fonts::{NERD_FONT, NERD_FONT_BYTES};
 
-pub const FONT: Font = NERD_FONT;
-pub const FONT_BYTES: &[u8] = NERD_FONT_BYTES;
+use crate::theme;
+
+pub const FONT_BYTES: &[u8] = include_bytes!("../assets/fonts/partout-icons.ttf");
+pub const FONT: Font = iced::Font::with_name("partout-icons");
 
 pub fn clipboard() -> Text<'static> {
-    text(icon_to_string(Nerd::Clipboard)).font(FONT)
+    // clipboard
+    icon('\u{F101}')
+}
+
+pub fn document() -> Text<'static> {
+    // document
+    icon('\u{F102}')
+}
+
+pub fn key() -> Text<'static> {
+    // key
+    icon('\u{F103}')
 }
 
 pub fn refresh() -> Text<'static> {
-    text(icon_to_string(Nerd::TimerRefresh)).font(FONT)
+    // refresh
+    icon('\u{F104}')
 }
 
-pub fn lock() -> Text<'static> {
-    text(icon_to_string(Nerd::Lock)).font(FONT)
+pub fn brush() -> Text<'static> {
+    // brush
+    icon('\u{F105}')
 }
 
-pub fn unlock() -> Text<'static> {
-    text(icon_to_string(Nerd::Unlock)).font(FONT)
+pub fn hidden() -> Text<'static> {
+    // eye-closed
+    icon('\u{F106}')
+}
+
+pub fn info() -> Text<'static> {
+    // info
+    icon('\u{F107}')
 }
 
 pub fn file() -> Text<'static> {
-    text(icon_to_string(Nerd::FileCabinet)).font(FONT)
+    // file
+    icon('\u{F108}')
 }
 
-pub fn view() -> Text<'static> {
-    text(icon_to_string(Nerd::GistSecret)).font(FONT)
+pub fn book() -> Text<'static> {
+    // book
+    icon('\u{F109}')
+}
+
+pub fn chronometer() -> Text<'static> {
+    // chronometer
+    icon('\u{F10A}')
+}
+
+pub fn alert() -> Text<'static> {
+    // alert
+    icon('\u{F10B}')
+}
+
+pub fn search() -> Text<'static> {
+    //search
+    icon('\u{F10C}')
+}
+
+pub fn settings() -> Text<'static> {
+    // settings-alt
+    icon('\u{F10D}')
+}
+
+pub fn login() -> Text<'static> {
+    // log-in
+    icon('\u{F10E}')
+}
+
+pub fn visible() -> Text<'static> {
+    // eye
+    icon('\u{F10F}')
+}
+
+fn icon<'a>(unicode: char) -> Text<'a> {
+    text(unicode.to_string())
+        .line_height(LineHeight::Relative(1.0))
+        .size(theme::ICON_SIZE)
+        .font(FONT)
 }
