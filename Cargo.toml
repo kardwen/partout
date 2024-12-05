@@ -1,10 +1,23 @@
-[workspace]
-resolver = "2"
+[package]
+name = "partout"
+description = "A desktop app for pass"
+version = "0.1.0"
+edition = "2021"
+authors = ["Karl Felix Schewe"]
+readme = "README.md"
+license = "GPL-3.0-only"
+repository = "https://github.com/kardwen/partout"
+keywords = ["password-manager", "pass"]
+categories = ["authentication"]
 
-members = [
-    "partout",
-    "passepartout",
-]
+[dependencies]
+anyhow = "1.0.93"
+iced = { version = "0.13.1", features = ["advanced", "debug", "image"] }
+iced_fonts = { version = "0.1.1", features = ["nerd"] }
+passepartout = "0.1.2"
+
+[dev-dependencies]
+clippy = "0.0.302"
 
 [profile.dev]
 opt-level = 0

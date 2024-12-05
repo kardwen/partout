@@ -1,3 +1,0 @@
-# passepartout
-
-Library for pass
