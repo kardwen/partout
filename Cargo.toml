@@ -1,7 +1,7 @@
 [package]
 name = "partout"
 description = "A desktop app for pass"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Karl Felix Schewe"]
 readme = "README.md"
@@ -13,11 +13,11 @@ categories = ["authentication"]
 [dependencies]
 anyhow = "1.0.93"
 iced = { version = "0.13.1", features = ["advanced", "debug", "image"] }
-iced_fonts = { version = "0.1.1", features = ["nerd"] }
-passepartout = "0.1.3"
+passepartout = "0.1.4"
+verglas = { version = "0.1.0", features = ["index"] }
 
-[dev-dependencies]
-clippy = "0.0.302"
+[build-dependencies]
+verglas = { version = "0.1.0", features = ["forge"] }
 
 [profile.dev]
 opt-level = 0

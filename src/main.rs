@@ -1,10 +1,12 @@
+use iced::advanced::graphics::image::image_rs::ImageFormat;
+
 mod app;
-mod icons;
+mod icon;
+mod macros;
 mod pass;
 mod screen;
 mod sidebar;
-
-use iced::advanced::graphics::image::image_rs::ImageFormat;
+mod theme;
 
 use app::App;
 
@@ -28,7 +30,7 @@ pub fn main() -> iced::Result {
     iced::application(App::title, App::update, App::view)
         .subscription(App::subscription)
         .theme(App::theme)
-        .font(icons::FONT_BYTES)
+        .font(icon::FONT_BYTES)
         .window(window_settings)
         .scale_factor(App::scale_factor)
         .run_with(App::new)

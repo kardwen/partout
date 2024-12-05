@@ -1,5 +1,9 @@
 # Partout
 
+[![crates.io](https://img.shields.io/crates/v/partout.svg)](https://crates.io/crates/partout)
+
+<img src="partout-screenshot.png" width="50%">
+
 ## Introduction
 
 A desktop app for [pass](https://www.passwordstore.org/), work in progress
@@ -45,5 +49,10 @@ to be copied to `$XDG_DATA_HOME/applications`
 Library for pass: [`passepartout`](https://github.com/kardwen/passepartout)
 
 ```sh
+cargo fmt
 cargo clippy
 ```
+
+Fonts:
+
+[Jam icons](https://github.com/michaelampr/jam)

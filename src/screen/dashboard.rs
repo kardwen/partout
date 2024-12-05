@@ -1,9 +1,9 @@
-pub mod password_details;
-mod password_list;
-
 use iced::widget::{container, row};
 use iced::{Element, Left, Subscription, Task, Top};
 use passepartout::PasswordInfo;
+
+pub mod password_details;
+mod password_list;
 
 use self::{password_details::PasswordDetails, password_list::PasswordList};
 

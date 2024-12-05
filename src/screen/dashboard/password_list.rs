@@ -1,9 +1,10 @@
+use iced::alignment::Vertical::Center;
 use iced::widget::{
     button, column, container, horizontal_space, hover, row, scrollable, text, text_input, Column,
 };
 use iced::{Element, Fill, Font, Left, Right, Task};
 
-use crate::icons;
+use crate::icon;
 use passepartout::PasswordInfo;
 
 #[derive(Debug, Clone)]
@@ -106,7 +107,7 @@ fn password_card(entry: &PasswordInfo) -> Element<Message> {
     };
 
     let details = container(
-        button(row!["View", icons::view()].spacing(10))
+        button(row!["View", icon::file()].spacing(8).align_y(Center))
             .on_press(Message::SelectEntry(entry.clone())),
     )
     .width(Fill)

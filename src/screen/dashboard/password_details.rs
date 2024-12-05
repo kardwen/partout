@@ -1,8 +1,9 @@
+use iced::alignment::Vertical::Center;
 use iced::widget::{button, column, container, horizontal_space, row, text, Button, Column};
 use iced::{color, Element, Fill, Left, Right, Task, Top};
 use passepartout::PasswordInfo;
 
-use crate::{icons, pass};
+use crate::{icon, pass};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -66,27 +67,47 @@ impl PasswordDetails {
         if let Some(ref entry) = self.entry {
             header = if self.show_secrets {
                 header.push(
-                    button(row!["Hide secrets", horizontal_space(), icons::unlock()].width(120))
-                        .on_press(Message::HideSecrets),
+                    button(
+                        row!["Hide secrets", horizontal_space(), icon::visible()]
+                            .width(125)
+                            .align_y(Center),
+                    )
+                    .on_press(Message::HideSecrets),
                 )
             } else {
                 header.push(
-                    button(row!["Show secrets", horizontal_space(), icons::lock()].width(120))
-                        .on_press(Message::ShowSecrets),
+                    button(
+                        row!["Show secrets", horizontal_space(), icon::hidden()]
+                            .width(125)
+                            .align_y(Center),
+                    )
+                    .on_press(Message::ShowSecrets),
                 )
             };
 
             content = content.push(password_field(
                 "Password File",
                 &entry.pass_id,
-                vec![button(row!["Copy", icons::clipboard()].spacing(10))
-                    .on_press(Message::CopyId(entry.clone()))],
+                vec![
+                    button(row!["Copy", icon::clipboard()].spacing(8).align_y(Center))
+                        .on_press(Message::CopyId(entry.clone())),
+                ],
             ));
             if let Some(ref line_count) = self.line_count {
                 let file_button = if self.show_file {
-                    button(row!["Hide file", icons::file()].spacing(10)).on_press(Message::ShowFile)
+                    button(
+                        row!["Hide file", icon::document()]
+                            .spacing(8)
+                            .align_y(Center),
+                    )
+                    .on_press(Message::ShowFile)
                 } else {
-                    button(row!["Show file", icons::file()].spacing(10)).on_press(Message::ShowFile)
+                    button(
+                        row!["Show file", icon::document()]
+                            .spacing(8)
+                            .align_y(Center),
+                    )
+                    .on_press(Message::ShowFile)
                 };
                 content = content.push(password_field(
                     "Number of lines",
@@ -102,23 +123,29 @@ impl PasswordDetails {
             content = content.push(password_field(
                 "Password",
                 password,
-                vec![button(row!["Copy", icons::clipboard()].spacing(10))
-                    .on_press(Message::CopyPassword(entry.clone()))],
+                vec![
+                    button(row!["Copy", icon::clipboard()].spacing(8).align_y(Center))
+                        .on_press(Message::CopyPassword(entry.clone())),
+                ],
             ));
             if let Some(ref login) = self.login {
                 content = if self.show_secrets {
                     content.push(password_field(
                         "Login",
                         login,
-                        vec![button(row!["Copy", icons::clipboard()].spacing(10))
-                            .on_press(Message::CopyLogin(entry.clone()))],
+                        vec![
+                            button(row!["Copy", icon::clipboard()].spacing(8).align_y(Center))
+                                .on_press(Message::CopyLogin(entry.clone())),
+                        ],
                     ))
                 } else {
                     content.push(password_field(
                         "Login",
                         "####",
-                        vec![button(row!["Copy", icons::clipboard()].spacing(10))
-                            .on_press(Message::CopyLogin(entry.clone()))],
+                        vec![
+                            button(row!["Copy", icon::clipboard()].spacing(8).align_y(Center))
+                                .on_press(Message::CopyLogin(entry.clone())),
+                        ],
                     ))
                 }
             }
@@ -128,9 +155,9 @@ impl PasswordDetails {
                         "One-time password (OTP)",
                         otp,
                         vec![
-                            button(row!["Refresh", icons::refresh()].spacing(10))
+                            button(row!["Refresh", icon::refresh()].spacing(8).align_y(Center))
                                 .on_press(Message::FetchOtp(entry.clone())),
-                            button(row!["Copy", icons::clipboard()].spacing(10))
+                            button(row!["Copy", icon::clipboard()].spacing(8).align_y(Center))
                                 .on_press(Message::CopyOtp(entry.clone())),
                         ],
                     ))
@@ -139,9 +166,9 @@ impl PasswordDetails {
                         "One-time password (OTP)",
                         "******",
                         vec![
-                            button(row!["Refresh", icons::refresh()].spacing(10))
+                            button(row!["Refresh", icon::refresh()].spacing(8).align_y(Center))
                                 .on_press(Message::FetchOtp(entry.clone())),
-                            button(row!["Copy", icons::clipboard()].spacing(10))
+                            button(row!["Copy", icon::clipboard()].spacing(8).align_y(Center))
                                 .on_press(Message::CopyOtp(entry.clone())),
                         ],
                     ))

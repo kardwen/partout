@@ -1,7 +1,7 @@
+use iced::{widget::horizontal_space, Element};
+
 pub mod dashboard;
 pub mod settings;
-
-use iced::{widget::horizontal_space, Element};
 
 use self::dashboard::Dashboard;
 use self::settings::Settings;

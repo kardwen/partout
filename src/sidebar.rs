@@ -1,5 +1,8 @@
-use iced::widget::{button, column, container, text, vertical_space};
+use iced::alignment::Vertical::Center;
+use iced::widget::{button, column, container, horizontal_space, row, text, vertical_space};
 use iced::{Element, Subscription, Task};
+
+use crate::icon;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -32,8 +35,18 @@ impl Sidebar {
 
     pub fn view(&self) -> Element<Message> {
         column![
-            button("Dashboard").on_press(Message::ShowDashboard),
-            button("Settings").on_press(Message::ShowSettings),
+            button(
+                row!["Dashboard", horizontal_space(), icon::book()]
+                    .width(105)
+                    .align_y(Center),
+            )
+            .on_press(Message::ShowDashboard),
+            button(
+                row!["Settings", horizontal_space(), icon::settings()]
+                    .width(105)
+                    .align_y(Center),
+            )
+            .on_press(Message::ShowSettings),
             button("Quit").on_press(Message::Quit),
             vertical_space(),
             container(text("alpha"))
