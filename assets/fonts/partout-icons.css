@@ -1,0 +1,61 @@
+@font-face {
+    font-family: "partout-icons";
+    src: url("./partout-icons.ttf?180ae1c9bfbd8c1d0126fe85f311ac54") format("truetype");
+}
+
+i[class^="icon-"]:before, i[class*=" icon-"]:before {
+    font-family: partout-icons !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-clipboard:before {
+    content: "\f101";
+}
+.icon-document:before {
+    content: "\f102";
+}
+.icon-key:before {
+    content: "\f103";
+}
+.icon-refresh:before {
+    content: "\f104";
+}
+.icon-brush:before {
+    content: "\f105";
+}
+.icon-eye-close:before {
+    content: "\f106";
+}
+.icon-info:before {
+    content: "\f107";
+}
+.icon-file:before {
+    content: "\f108";
+}
+.icon-book:before {
+    content: "\f109";
+}
+.icon-chronometer:before {
+    content: "\f10a";
+}
+.icon-alert:before {
+    content: "\f10b";
+}
+.icon-search:before {
+    content: "\f10c";
+}
+.icon-settings-alt:before {
+    content: "\f10d";
+}
+.icon-log-in:before {
+    content: "\f10e";
+}
+.icon-eye:before {
+    content: "\f10f";
+}

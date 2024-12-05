@@ -3,6 +3,7 @@ mod icons;
 mod pass;
 mod screen;
 mod sidebar;
+mod theme;
 
 use iced::advanced::graphics::image::image_rs::ImageFormat;
 
