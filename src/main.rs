@@ -3,7 +3,6 @@ use iced::advanced::graphics::image::image_rs::ImageFormat;
 mod app;
 mod icon;
 mod macros;
-mod pass;
 mod screen;
 mod sidebar;
 mod theme;

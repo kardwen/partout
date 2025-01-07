@@ -2,7 +2,6 @@ use iced::widget::{container, row};
 use iced::window;
 use iced::{Element, Fill, Left, Subscription, Task, Theme, Top};
 use passepartout::PasswordStore;
-use std::sync::mpsc;
 
 use crate::{
     screen::{
@@ -32,8 +31,7 @@ pub struct App {
 
 impl App {
     pub fn new() -> (Self, Task<Message>) {
-        let (event_tx, _event_rx) = mpsc::channel();
-        let store = PasswordStore::new(event_tx);
+        let store = PasswordStore::new();
         let (sidebar, _) = Sidebar::new();
         let screen = Screen::Loading;
         (

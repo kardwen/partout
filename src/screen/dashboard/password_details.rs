@@ -1,9 +1,11 @@
 use iced::alignment::Vertical::Center;
 use iced::widget::{button, column, container, horizontal_space, row, text, Button, Column};
 use iced::{color, Element, Fill, Left, Right, Task, Top};
-use passepartout::PasswordInfo;
+use std::path::PathBuf;
 
-use crate::{icon, pass};
+use passepartout::{PasswordInfo, PasswordStore};
+
+use crate::icon;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -212,8 +214,19 @@ impl PasswordDetails {
                 self.show_secrets = false;
                 self.select(entry.clone());
                 self.status = Some("Fetching password entry...".to_string());
+
+                let pass_id = entry.pass_id.clone();
+                // TODO:The password store directory should not be read each time
+                let store_dir = PasswordStore::get_store_dir();
+                let file_path = PathBuf::from(store_dir).join(format!("{}.gpg", pass_id));
+                async fn helper_function(file_path: PathBuf, pass_id: String) -> (String, String) {
+                    match passepartout::decrypt_password_file(&file_path) {
+                        Ok(file_contents) => (pass_id, file_contents),
+                        Err(_) => (String::new(), String::new()),
+                    }
+                }
                 Action::Run(Task::perform(
-                    pass::fetch_entry(entry.pass_id),
+                    helper_function(file_path, entry.pass_id),
                     |(id, result)| Message::EntryFetched(id, result),
                 ))
             }
@@ -222,10 +235,8 @@ impl PasswordDetails {
                 self.show_secrets();
                 // Refresh OTP
                 if let Some(entry) = &self.entry {
-                    Action::Run(Task::perform(
-                        pass::fetch_otp(entry.pass_id.clone()),
-                        |(id, result)| Message::OtpFetched(id, result),
-                    ))
+                    let pass_id = entry.pass_id.clone();
+                    run_generate_otp(pass_id)
                 } else {
                     Action::None
                 }
@@ -260,8 +271,13 @@ impl PasswordDetails {
             }
             Message::CopyPassword(entry) => {
                 self.status = Some("Copying password to clipboard...".to_string());
+
+                let pass_id = entry.pass_id.clone();
+                // TODO:The password store directory should not be read each time
+                let store_dir = PasswordStore::get_store_dir();
+                let file_path = PathBuf::from(store_dir).join(format!("{}.gpg", pass_id));
                 Action::Run(Task::perform(
-                    async move { passepartout::copy_password(entry.pass_id).is_ok() },
+                    async move { passepartout::copy_password(&file_path).is_ok() },
                     Message::PasswordCopied,
                 ))
             }
@@ -275,8 +291,13 @@ impl PasswordDetails {
             }
             Message::CopyLogin(entry) => {
                 self.status = Some("Copying login to clipboard...".to_string());
+
+                let pass_id = entry.pass_id.clone();
+                // TODO:The password store directory should not be read each time
+                let store_dir = PasswordStore::get_store_dir();
+                let file_path = PathBuf::from(store_dir).join(format!("{}.gpg", pass_id));
                 Action::Run(Task::perform(
-                    async move { passepartout::copy_login(entry.pass_id).is_ok() },
+                    async move { passepartout::copy_login(&file_path).is_ok() },
                     Message::LoginCopied,
                 ))
             }
@@ -289,9 +310,13 @@ impl PasswordDetails {
                 Action::None
             }
             Message::CopyOtp(entry) => {
-                self.status = Some("Copying login to clipboard...".to_string());
+                self.status = Some("Copying one-time password to clipboard...".to_string());
+
+                // TODO:The password store directory should not be read each time
+                let store_dir = PasswordStore::get_store_dir();
+                let file_path = PathBuf::from(store_dir).join(format!("{}.gpg", entry.pass_id));
                 Action::Run(Task::perform(
-                    async move { passepartout::copy_otp(entry.pass_id).is_ok() },
+                    async move { passepartout::copy_otp(&file_path).is_ok() },
                     Message::OtpCopied,
                 ))
             }
@@ -305,10 +330,9 @@ impl PasswordDetails {
             }
             Message::FetchOtp(entry) => {
                 self.status = Some("Fetching one-time password...".to_string());
-                Action::Run(Task::perform(
-                    pass::fetch_otp(entry.pass_id),
-                    |(id, result)| Message::OtpFetched(id, result),
-                ))
+
+                let pass_id = entry.pass_id.clone();
+                run_generate_otp(pass_id)
             }
             Message::OtpFetched(id, otp) => {
                 if let Some(ref entry) = self.entry {
@@ -377,14 +401,30 @@ impl PasswordDetails {
 
             if has_otp {
                 self.otp = Some("*".repeat(6));
-                return Action::Run(Task::perform(
-                    pass::fetch_otp(entry.pass_id.clone()),
-                    |(id, result)| Message::OtpFetched(id, result),
-                ));
+
+                let pass_id = entry.pass_id.clone();
+                return run_generate_otp(pass_id);
             }
         }
         Action::None
     }
+}
+
+fn run_generate_otp(pass_id: String) -> Action {
+    // TODO:The password store directory should not be read each time
+    let store_dir = PasswordStore::get_store_dir();
+    let file_path = PathBuf::from(store_dir).join(format!("{}.gpg", pass_id));
+
+    async fn helper_function(file_path: PathBuf, pass_id: String) -> (String, String) {
+        match passepartout::generate_otp(&file_path) {
+            Ok(otp) => (pass_id, otp),
+            Err(_) => (String::new(), String::new()),
+        }
+    }
+    Action::Run(Task::perform(
+        helper_function(file_path, pass_id),
+        |(id, result)| Message::OtpFetched(id, result),
+    ))
 }
 
 fn password_field<'a>(

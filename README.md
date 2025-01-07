@@ -6,7 +6,7 @@
 
 ## Introduction
 
-A desktop app for [pass](https://www.passwordstore.org/), work in progress
+🧊 Iced desktop app for [pass](https://www.passwordstore.org/), work in progress
 
 I have also written a TUI for pass that is available in the [AUR](https://aur.archlinux.org/packages/passepartui) and in [nixpkgs](https://github.com/NixOS/nixpkgs):
 
@@ -23,7 +23,7 @@ I have also written a TUI for pass that is available in the [AUR](https://aur.ar
 ### Prerequisites
 
 * Unix (tested on Linux so far)
-* `pass`, optionally `pass-otp` for one-time passwords
+* C library [`gpgme`](https://gnupg.org/software/gpgme/index.html) for decryption operations
 * Rust and cargo
 
 ### Installation from crates.io
@@ -46,13 +46,11 @@ to be copied to `$XDG_DATA_HOME/applications`
   <img src="https://gist.githubusercontent.com/hecrj/ad7ecd38f6e47ff3688a38c79fd108f0/raw/74384875ecbad02ae2a926425e9bcafd0695bade/color.svg" width="130px">
 </a>
 
-Library for pass: [`passepartout`](https://github.com/kardwen/passepartout)
-
 ```sh
 cargo fmt
 cargo clippy
 ```
 
-Fonts:
+Icons: [Jam icons](https://github.com/michaelampr/jam)
 
-[Jam icons](https://github.com/michaelampr/jam)
+Library used for pass: [`passepartout`](https://github.com/kardwen/passepartout)
